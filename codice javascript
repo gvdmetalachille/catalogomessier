@@ -1,0 +1,97 @@
+// identificazione foglio di lavoro
+ID_SPREADSHEET="1NdMRAde-gD9kHQMa9T1JNiS0hKzGorv8TzqeXVQrkZ0"; 
+
+//funzione costruzione elenco consigli
+function Consigli(foglio){
+  var ss = SpreadsheetApp.openById(ID_SPREADSHEET); //apre il collegamento con lo spreadsheet
+  var metaSheet = ss.getSheetByName(foglio); //individua il foglio dello spreadsheet in cui cercare
+  var RSSFeedTitle='<b>ELENCO OGGETTI</b>\n'; //inizializza a zero la variabile del contenuto da cerca
+  var lastrow=2; //imposta il valore della prima riga da cui iniziare a cercare
+  while (metaSheet.getRange(lastrow,1).getValue()!=''){
+    RSSFeedTitle +='/'+metaSheet.getRange(lastrow,1).getValue()+'-'+metaSheet.getRange(lastrow,2).getValue()+'\n';
+    lastrow++;
+  }
+  return RSSFeedTitle;
+}
+
+//funzione che riceve in ingresso indicazioni su foglio e messaggio da cercare e restituisce il valore della colonna #10
+function doGet(foglio, messaggio) { 
+  var ss = SpreadsheetApp.openById(ID_SPREADSHEET); //apre il collegamento con lo spreadsheet
+  var metaSheet = ss.getSheetByName(foglio); //individua il foglio dello spreadsheet in cui cercare
+  var RSSFeedTitle=''; //inizializza a zero la variabile del contenuto da cerca
+  var lastrow=1; //imposta il valore della prima riga da cui iniziare a cercare
+  // ciclo iterativo while che cerca nella colonna 1 se esiste il valore cercato, oppure se si è arrivati ad un contenuto vuoto - ovvero non c'è il valore cercato
+  while (metaSheet.getRange(lastrow,1).getValue()!=''){ //per ogni valore di lastrow, verificare che il contenuto della cella cella (lastrow, 1) è uguale al messaggio dell'utente
+    if (('/'+metaSheet.getRange(lastrow,1).getValue())==messaggio){ //se uguale, cioè condizione verificata
+      RSSFeedTitle = '<b>Nome di catalogo</b>'+ '\n'+ metaSheet.getRange(lastrow,1).getValue()+ '\n'+ '\n'+ '<b>Altri nomi</b>'+'\n'+metaSheet.getRange(lastrow,2).getValue()+'\n'+'\n'+'<b>Tipo di oggetto</b>'+ '\n'+ metaSheet.getRange(lastrow,3).getValue()+ '\n'+ '\n'+'<b>Costellazione</b>'+ '\n'+ metaSheet.getRange(lastrow,4).getValue()+ '\n'+ '\n'+'<b>Coordinate(J2000)</b>'+ '\n'+ metaSheet.getRange(lastrow,5).getValue()+ '\n'+ '\n'+'<b>Distanza</b>'+ '\n'+ metaSheet.getRange(lastrow,6).getValue()+ '\n'+ '\n'+'<b>Magnitudine visuale</b>'+ '\n'+ metaSheet.getRange(lastrow,7).getValue()+ '\n'+ '\n'+'<b>Dimensioni apparenti</b>'+ '\n'+ metaSheet.getRange(lastrow,8).getValue()+ '\n'+ '\n'+'<b>Dimensioni reali</b>'+ '\n'+ metaSheet.getRange(lastrow,9).getValue()+ '\n'+ '\n'+ '<b>Descrizione</b>'+'\n'+metaSheet.getRange(lastrow,10).getValue() + '\n'+ '\n'+ '<b>Link Aladin</b>' + '\n'+ '\n'+ metaSheet.getRange(lastrow,11).getValue() ; //inserire nella variabile RSSFeedTitle  il contenuto della cella (lastrow, 10)
+      break; //interruzione ciclo
+    }
+    else{ //se non è uguale, ovvero la condizione non è verificata
+      RSSFeedTitle = 'Error NGC404: non esiste ciò che cerchi. \n'; //inserire nella variabile RSSFeedTitle il messaggio di errore nerd
+    }
+    lastrow++; //aggiunge 1 alla variabile lastrow per far passare alla riga successiva il ciclo, finché è attivo
+  } 
+  return RSSFeedTitle; //restituisce la variabile RSSFeedTitle
+}
+
+
+
+function doPost(e) {
+  var update = JSON.parse(e.postData.contents);
+  // Variabile dell'API TOKEN
+  var API_TOKEN = '387878075:AAERrtK-LHXXHiPh6OErt2VnCgkRdU_rVqQ';
+  
+  // Make sure this is update is a type message
+  if (update.hasOwnProperty('message')) {
+    var msg = update.message;
+    var chatId = msg.chat.id;
+
+    // Make sure the update is a command.
+    if (msg.hasOwnProperty('entities') && msg.entities[0].type == 'bot_command') {
+//aggiunta
+  if (msg.hasOwnProperty('entities') && msg.entities[0].type == 'bot_command') {
+    msg.text = msg.text.replace('@astronomiamia_bot', "");
+// if (msg.text == '/Start' | msg.text == '/start') { //se il messaggio è uguale a /start, mandare la descrizione all'utente
+     if (msg.text == '/Start' | msg.text == '/start'){
+        var payload = {
+          'method': 'sendMessage',
+          'chat_id': String(chatId), //apertura chat del bot
+          'text': '<b>Catalogo di Messier</b>\n Versione moderna del celebre Catalogo astronomico di Charles Messier del 1774, contenente tutti i 110 oggetti con relativa descrizione. Basta inserire il nome di catalogo dell\'oggetto preceduto da "/" e premere invio. Ad esempio, /M1 e riceverai tutte le informazioni sulla Nebulosa del Granchio, compreso il link diretto all\'atlante celeste Aladin che permtterà di osservare l\'oggetto nelle varie lunghezze d\'onda, oltre che consultare il database di Simbad. Si consiglia di usare questa funzione su Telegram desktop/Web per una maggiore comodità di utilizzo durante la visualizzazione delle immagini. Le informazioni sono prese da Wikipedia. Bot sviluppato da Giovanni Vincenzo Donatiello con la supervisione del Prof. Mimmo Aprile. Codice basato su @SupercazzolaPolitica_bot di Francesco @Piersoft Paolicelli',
+          'parse_mode': 'HTML', //HTML giusto per poter usare caratteri vari (grassetto, corsico, andare a capo)
+          'disable_web_page_preview':'TRUE'
+        }
+       } 
+       // }
+  else {
+        if (msg.text == '/consigli'){ //test consigli 
+           var payload = {
+          'method': 'sendMessage',
+          'chat_id': String(chatId), //apertura chat del bot
+          'text': Consigli('Nebulose'),
+          'parse_mode': 'HTML', //HTML giusto per poter usare caratteri vari (grassetto, corsico, andare a capo)
+        }
+        }
+        else {
+          var msg=msg.text //dichiarazione della variabile msg e inserimento nella stessa del testo originale della chat utente-bot
+          var payload = {
+          'method': 'sendMessage',
+          'chat_id': String(chatId),
+          'text': doGet('Nebulose',msg), //richiama funzione doGet per il foglio Nebulose e msg
+          'parse_mode': 'HTML'
+        }
+        }
+        }      
+        }
+        
+
+        var data = {
+          "method": "post",
+          "payload": payload
+        }
+
+
+        UrlFetchApp.fetch('https://api.telegram.org/bot' + API_TOKEN + '/', data);
+      }
+
+    }
+  }
